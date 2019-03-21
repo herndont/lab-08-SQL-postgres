@@ -39,7 +39,7 @@ app.use('*', (req, res) => res.send('Sorry, that route does not exist'));
 app.listen(PORT, () => console.log(`Listening on PORT ${PORT}`));
 
 //Create the client connection to the database
-const client = new pg.Client(process.env.DATABASE_URL);
+const client = new pg.Client(process.env.HEROKU_POSTGRESQL_TEAL);
 client.connect();
 client.on('error', err => console.error(err));
 
