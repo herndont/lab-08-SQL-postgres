@@ -20,12 +20,21 @@ app.get('/location', getLocation);
 // Keys: forecast, time
 app.get('/weather', getWeather);
 
+
+
 // TODO: create a getMeetups function
+// [ { link:,
+// name:,
+// creation_date:,
+// host:}, ]
 // app.get('/meetups', getMeetups);
+app.get('/meetups', getMeetups);
 
 // TODO: create a getYelp function
 // app.get('/yelp', getYelp);
 
+// '*' route for invalid endpoints
+app.use('*', (req, res) => res.send('Sorry, that route does not exist'));
 
 app.listen(PORT, () => console.log(`Listening on PORT ${PORT}`));
 
@@ -41,7 +50,6 @@ function getLocation(req, res) {
   const mapsURL = `https://maps.googleapis.com/maps/api/geocode/json?key=${process.env.GOOGLE_MAPS_API_KEY}&address=${req.query.data}`;
   return superagent.get(mapsURL)
     .then(result => {
-      console.log(result);
       res.send(new Location(result.body.results[0], req.query.data));
     })
     .catch(error => handleError(error));
@@ -61,10 +69,23 @@ function getWeather(req, res) {
     .catch(error => handleError(error));
 }
 
+// returns array of 20 meetup objects
+function getMeetups(req, res) {
+  const meetupUrl = `https://api.meetup.com/find/upcoming_events?lat=${req.query.data.latitude}&lon=${req.query.data.longitude}&sign=true&key=${process.env.MEETUP_API_KEY}&page=20`;
+
+  return superagent.get(meetupUrl)
+    .then( meetupResults => {
+      console.log(meetupResults.body.events);
+      const meetupList = meetupResults.body.events.map((event) => {
+        return new MeetupEvent(event);
+      });
+      res.send(meetupList);
+    })
+    .catch(error => handleError(error));
+}
 
 // Location object constructor
 function Location(data, query) {
-  console.log(data);
   this.search_query = query;
   this.formatted_query = data.formatted_address;
   this.latitude = data.geometry.location.lat;
@@ -75,4 +96,12 @@ function Location(data, query) {
 function Forecast(day) {
   this.forecast = day.summary;
   this.time = new Date(day.time*1000).toString().slice(0,15);
+}
+
+// Meetup event object constructor
+function MeetupEvent(event) {
+  this.link = event.link;
+  this.name = event.name;
+  this.creation_date = new Date(event.time).toString().slice(0, 15);
+  this.host = event.group.name;
 }
