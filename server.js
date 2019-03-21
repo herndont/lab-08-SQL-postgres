@@ -2,14 +2,14 @@
 
 require('dotenv').config();
 
-const superagent = require('superagent');
 const express = require('express');
-const app = express();
-const pg = require('pg');
 const cors = require('cors');
-app.use(cors());
+const superagent = require('superagent');
+const pg = require('pg');
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
+const app = express();
+app.use(cors());
 
 
 // location route, returns location object
@@ -39,7 +39,7 @@ app.use('*', (req, res) => res.send('Sorry, that route does not exist'));
 app.listen(PORT, () => console.log(`Listening on PORT ${PORT}`));
 
 //Create the client connection to the database
-const client = new pgClient(process.env.DATABASE_URL);
+const client = new pg.Client(process.env.DATABASE_URL);
 client.connect();
 client.on('error', err => console.error(err));
 
@@ -53,19 +53,64 @@ function handleError(err, res) {
 // HELPER FUNCTIONS
 
 // takes search request and convert to location object
+//location refactored for SQL
 function getLocation(req, res) {
-  const mapsURL = `https://maps.googleapis.com/maps/api/geocode/json?key=${process.env.GOOGLE_MAPS_API_KEY}&address=${req.query.data}`;
-  return superagent.get(mapsURL)
+  let query = req.query.data;
+
+  //defining search query
+  let sql = `SELECT * FROM locations WHERE search_query=$1;`
+  let values = [query];
+
+
+  //making query of database
+  client.query(sql, values)
     .then(result => {
-      res.send(new Location(result.body.results[0], req.query.data));
+      //if the location is in the database, return it to the front end
+      if (result.rowCount > 0) {
+        console.log('LOCATION FROM SQL');
+        res.send(result.rows[0]);
+      } else {
+        //otherwise go get data from APi
+        const mapsURL = `https://maps.googleapis.com/maps/api/geocode/json?key=${process.env.GOOGLE_MAPS_API_KEY}&address=${req.query.data}`
+        superagent.get(mapsURL)
+          .then(data => {
+            console.log('LOCATION FROM API');
+            //throw an error if there is a problem with the API
+            if (!data.body.results.link) { throw 'No Data' }
+            //if there is data:
+            else {
+              let location = new Location(query, data.body.results[0]);
+              //creata a query string to add the location data to SQL
+              let newSql = `INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4) RETURNING id;`;
+              let newValues = Object.values(location);
+              //insert location data into the database and return the unique id for the new record
+              client.query(newSql, newValues)
+                .then(result => {
+                  //attach the returned id onto the location object
+                  location.id = result.rows[0].id;
+                  //return the location data to the front end
+                  res.send(location);
+                })
+            }
+          })
+          .catch(error => handleError(error, res));
+      }
     })
-    .catch(error => handleError(error));
 }
+
+// function getLocation(req, res) {
+//   const mapsURL = `https://maps.googleapis.com/maps/api/geocode/json?key=${process.env.GOOGLE_MAPS_API_KEY}&address=${req.query.data}`;
+//   return superagent.get(mapsURL)
+//     .then(result => {
+//       res.send(new Location(result.body.results[0], req.query.data));
+//     })
+//     .catch(error => handleError(error));
+// }
 
 // returns array of daily forecasts
 function getWeather(req, res) {
   const dark_sky_url = `https://api.darksky.net/forecast/${process.env.DARK_SKY_API_KEY}/${req.query.data.latitude},${req.query.data.longitude}`;
-  
+
   return superagent.get(dark_sky_url)
     .then( weatherResult => {
       const weatherSummaries = weatherResult.body.daily.data.map((day) => {
