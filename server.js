@@ -5,7 +5,7 @@ require('dotenv').config();
 const superagent = require('superagent');
 const express = require('express');
 const app = express();
-
+const pg = require('pg');
 const cors = require('cors');
 app.use(cors());
 
@@ -38,6 +38,13 @@ app.use('*', (req, res) => res.send('Sorry, that route does not exist'));
 
 app.listen(PORT, () => console.log(`Listening on PORT ${PORT}`));
 
+//Create the client connection to the database
+const client = new pgClient(process.env.DATABASE_URL);
+client.connect();
+client.on('error', err => console.error(err));
+
+
+//Error handler for when a 500 error happens
 function handleError(err, res) {
   console.error(err);
   if (res) res.status(500).send('Sorry, something went wrong');

@@ -1,8 +1,13 @@
 lab-06-back-end
 back end for city explorer app
 
+Version: 1.0.0
+
 Project Name
-Author: Jagdeep Singh Version: 1.0.0 (increment the patch/fix version number if you make more commits past your first submission)
+Day 1 Authors: Jagdeep Singh & Trey Herndon  (increment the patch/fix version number if you make more commits past your first submission)
+Day 2 Authors: Jesse Van Volkinburg & Trey Herndon 
+Day 3 Authors: Jess Zuchowski & Trey Herndon
+
 
 Overview
 This site is being built so that we can get hands on experience with backend systems and produce a product that pulls from multiple databases and updates the information pulled regularly.
@@ -11,13 +16,14 @@ Getting Started
 Location-route step 1: Copy base code from our Repo. step 2: In terminal window 'npm install dotenv' and create '.env' file containing PORT='port number you use'. step 3: Run nodemon and test routes (location) and outputs. step 4: deploy if desired.
 
 Architecture
-Langauges currently in use include, JavaScript, node, JSON, npm. NPM packages in use: express, cors, dotenv, superagent
+Langauges currently in use include, JavaScript, node, JSON, npm, SQL. NPM packages in use: express, cors, dotenv, superagent
 
 Change Log
 2019-03-19 12:20 - Application now has a fully-functional express server, with a GET route for the /location resource. 2019-03-20 12:20 - Application has a /weather GET route and a /meetups GET route, and an error handler.
 
 Credits and Collaborations
 Credit should be given to CodeFellows for providing all of the frontend javascript, html, and CSS. CodeFellows also gave guidance on the creation of the backend portion.
+
 
 DAY 1
 Number and name of feature: Locations
@@ -50,6 +56,7 @@ Finish time: 12:20pm
 
 Actual time needed to complete: 1:05 minutes
 
+
 DAY 2
 Number and name of feature: 1, 2, and 3 Data, Weather and Locations
 
@@ -66,3 +73,15 @@ Estimate of time needed to complete: 1 hour
 Start time: 10:35 Finish time: 12:20
 
 Actual time: 1:45 hours
+
+
+DAY 3
+Number and name of feature: 1 Database
+
+Estimate of time needed to complete: 1 hour
+
+Start time: 9:15 
+
+Actual time: 50 min
+
+End time: 10:05am
