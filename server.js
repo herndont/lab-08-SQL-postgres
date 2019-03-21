@@ -71,12 +71,12 @@ function getLocation(req, res) {
         res.send(result.rows[0]);
       } else {
         //otherwise go get data from APi
-        const mapsURL = `https://maps.googleapis.com/maps/api/geocode/json?key=${process.env.GOOGLE_MAPS_API_KEY}&address=${req.query.data}`
+        const mapsURL = `https://maps.googleapis.com/maps/api/geocode/json?key=${process.env.GOOGLE_MAPS_API_KEY}&address=${req.query.data}`;
         superagent.get(mapsURL)
           .then(data => {
             console.log('LOCATION FROM API');
             //throw an error if there is a problem with the API
-            if (!data.body.results.link) { throw 'No Data' }
+            if (!data.body.results.length) { throw 'No Data' }
             //if there is data:
             else {
               let location = new Location(query, data.body.results[0]);
@@ -127,7 +127,6 @@ function getMeetups(req, res) {
 
   return superagent.get(meetupUrl)
     .then( meetupResults => {
-      console.log(meetupResults.body.events);
       const meetupList = meetupResults.body.events.map((event) => {
         return new MeetupEvent(event);
       });
@@ -137,7 +136,7 @@ function getMeetups(req, res) {
 }
 
 // Location object constructor
-function Location(data, query) {
+function Location(query, data) {
   this.search_query = query;
   this.formatted_query = data.formatted_address;
   this.latitude = data.geometry.location.lat;
